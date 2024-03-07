@@ -4,6 +4,7 @@ const express = require('express')
 const cors = require('cors')
 import { createServer } from 'http'
 import UserRoutes from './routes/user.routes'
+import CategoriesRoutes from './routes/categories.routes'
 
 
 connectionDB()
@@ -19,6 +20,7 @@ server.use(express.urlencoded({ extended: true }))
 
 
 server.use('/api/auth', UserRoutes)
+server.use('/api/categories', CategoriesRoutes)
 
 createServer(server).listen(serverConfig.port, () =>
   console.log(`Server is running on port ${serverConfig.port}`),
