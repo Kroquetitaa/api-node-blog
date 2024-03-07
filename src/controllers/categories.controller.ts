@@ -1,8 +1,16 @@
 import CategoriesModel from "../models/categories.models";
 import { Request, Response } from "express";
 import { StatusCodes, ReasonPhrases } from "http-status-codes";
+import UserModel from "../models/user.models";
 
-export const createCategories = async (req: Request, res: Response) => {
+interface AuthenticatedRequest extends Request {
+  user?: any;
+}
+
+export const createCategories = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   try {
     const params = req.body;
 
@@ -26,10 +34,19 @@ export const createCategories = async (req: Request, res: Response) => {
     const category = new CategoriesModel(params);
     await category.save();
 
+    const userId = req.user.id;
+
+    const user = await UserModel.findByIdAndUpdate(
+      userId,
+      { $push: { categories: category._id } },
+      { new: true }
+    );
+    
     return res.status(StatusCodes.OK).send({
       status: "Success",
       message: "Category saved",
       category,
+      user,
     });
   } catch (err) {
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
@@ -53,7 +70,8 @@ export const allCategories = async (req: Request, res: Response) => {
     const allCategories = await CategoriesModel.find()
       .sort("title")
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .populate("posts")
 
     return res.status(StatusCodes.OK).send({
       status: "Success",
@@ -84,6 +102,7 @@ export const categoriesByID = async (req: Request, res: Response) => {
 
     return res.status(StatusCodes.OK).send({ status: "Succes", categoryID });
   } catch (err) {
+    console.log( err )
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
       status: "Error",
       message: "Internal server error",
@@ -107,7 +126,7 @@ export const updateCategoriesByID = async (req: Request, res: Response) => {
       id,
       { title },
       { new: true }
-    );
+    ).populate('posts');
 
     if (!updatedCategory) {
       return res.status(StatusCodes.NOT_FOUND).send({
@@ -129,6 +148,7 @@ export const updateCategoriesByID = async (req: Request, res: Response) => {
   }
 };
 
+
 export const deleteCategoriesByID = async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
@@ -138,13 +158,13 @@ export const deleteCategoriesByID = async (req: Request, res: Response) => {
     if (!deletedCategory) {
       return res.status(StatusCodes.NOT_FOUND).send({
         status: "Error",
-        message: "Category not found",
+        message: "Post not found",
       });
     }
 
     return res.status(StatusCodes.OK).send({
       status: "Success",
-      message: "Category deleted successfully",
+      message: "Post deleted successfully",
       deletedCategory,
     });
   } catch (err) {

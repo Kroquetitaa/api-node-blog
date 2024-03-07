@@ -7,6 +7,7 @@ const UserSchemaField: Record<keyof User, any> = {
   first_name: { type: String, minlength: 5, maxlength: 80 },
   last_name: { type: String, minlength: 5, maxlength: 80 },
   created_at: { type: Date, default: Date.now },
+  categories: [{ type: Schema.Types.ObjectId, ref: "Categorie" }]
 };
 
 const UserSchema = new Schema<UserModel>(UserSchemaField);

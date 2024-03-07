@@ -124,8 +124,8 @@ export const refreshToken = async (req: Request, res: Response) => {
 export const profile = async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
-    console.log(id);
-    const user = await UserModel.findById(id);
+
+    const user = await UserModel.findById(id).populate('categories');
 
     if (!user) {
       return res.status(StatusCodes.NOT_FOUND).send({
@@ -138,6 +138,7 @@ export const profile = async (req: Request, res: Response) => {
       message: "User found",
       user,
     });
+    console.log( user )
   } catch (err) {
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
       status: "Error",
